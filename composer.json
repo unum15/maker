@@ -1,0 +1,13 @@
+{
+    "name": "unum/maker",
+    "description": "Command scripts for creating common lumen components. Such as Model, Controller, Routes, Factory, and Tests.",
+    "type": "library",
+    "license": "GPL 2",
+    "authors": [
+        {
+            "name": "Kyle Waters",
+            "email": "unum@unum5.org"
+        }
+    ],
+    "require": {}
+}
