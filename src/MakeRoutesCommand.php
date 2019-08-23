@@ -46,6 +46,7 @@ class MakeRoutesCommand extends Command
         $columns = array_diff($columns, $skip_columns);
         $file_content =
 "
+
 \$router->get('/$table', ['uses' => '${model}Controller@index', 'as' => '$single.index']);
 \$router->post('/$single', ['uses' => '${model}Controller@create', 'as' => '$single.create']);
 \$router->get('/$single/{id:[0-9]+}', ['uses' => '${model}Controller@read', 'as' => '$single.read']);

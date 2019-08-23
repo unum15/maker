@@ -39,10 +39,10 @@ class MakeControllerCommand extends Command
     public function handle()
     {
         $table = $this->argument('table');
-        $skip_columns = ['id', 'created_at', 'updated_at'];
         $model = studly_case(str_singular($table));
         $single = str_singular($table);
         $columns = DB::getSchemaBuilder()->getColumnListing($table);
+        $skip_columns = ['id', 'created_at', 'updated_at'];
         $columns = array_diff($columns, $skip_columns);
         $file_content =
 "<?php

@@ -16,7 +16,10 @@ class MakerServiceProvider extends ServiceProvider
             MakeRoutesCommand::class,
             MakeFactoryCommand::class,
             MakeTestCommand::class,
-            MakeAllCommand::class
+            MakeAllCommand::class,
+            MakeVEditCommand::class,
+            MakeVRoutesCommand::class,
+            MakeVViewCommand::class
         ]);
     }
 
