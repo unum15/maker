@@ -5,7 +5,7 @@ namespace Unum\Maker;;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class MakeControllerCommand extends Command
+class MakeControllerCommand extends MakeCommand
 {
     /**
      * The name and signature of the console command.
@@ -44,6 +44,7 @@ class MakeControllerCommand extends Command
         $columns = DB::getSchemaBuilder()->getColumnListing($table);
         $skip_columns = ['id', 'created_at', 'updated_at'];
         $columns = array_diff($columns, $skip_columns);
+        $foreign_keys = $this->getForeignKeys($table);
         $file_content =
 "<?php
 
@@ -54,33 +55,37 @@ use Illuminate\\Http\\Request;
 
 class ${model}Controller extends Controller
 {
-    public function __construct(Request \$request)
+    public function __construct()
     {
         \$this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request \$request)
     {
-        \$items = $model::all();
+        \$includes = \$this->validateIncludes(\$request->input('includes'));
+        \$items = $model::with(\$includes)->get();
         return ['data' => \$items];
     }
 
     public function create(Request \$request)
     {
-        \$item = $model::create(\$request->input());
+        \$values = \$this->validateModel(\$request, true);
+        \$item = $model::create(\$values);
         return response(['data' => \$item], 201, ['Location' => route('$single.read', ['id' => \$item->id])]);
     }
 
-    public function read(\$id)
+    public function read(\$id, Request \$request)
     {
-        \$item = $model::findOrFail(\$id);
+        \$includes = \$this->validateIncludes(\$request->input('includes'));
+        \$item = $model::find(\$id)->with(\$includes)->firstOrFail();
         return ['data' => \$item];
     }
 
     public function update(\$id, Request \$request)
     {
         \$item = $model::findOrFail(\$id);
-        \$item->update(\$request->input());
+        \$values = \$this->validateModel(\$request);
+        \$item->update(\$values);
         return ['data' => \$item];
     }
 
@@ -90,9 +95,65 @@ class ${model}Controller extends Controller
         \$item->delete();
         return response([], 401);
     }
-}
+    
+    protected \$model_validation = [";
+        foreach($columns as $column){
+            $col_info = $this->getColumnData($table, $column);
+            $validators = [];
+            switch($col_info->data_type){
+                case 'bigint':
+                case 'integer':
+                    array_push($validators, 'integer');
+                    break;
+                case 'character varying':
+                case 'text':
+                    array_push($validators, 'string');
+                    if($col_info->character_octet_length != ""){
+                        array_push($validators, 'max:'.$col_info->character_octet_length);
+                    }
+                    break;
+                default:
+                    array_push($validators, $col_info->data_type);
+                    break;
+            }
+            if($col_info->is_nullable == 'YES'){
+                array_push($validators, 'nullable');
+            }
+            if(isset($foreign_keys[$column])){
+                array_push($validators, 'exists:' . $foreign_keys[$column] . ',id');
+            }
+            $file_content .= "\n       '$column' => '" . implode('|', $validators) . "',";
+        }
+        $file_content .=
+"
+    ];
+    
+    protected \$model_validation_required = [";
+        foreach($columns as $column){
+            $col_info = $this->getColumnData($table, $column);
+            if($col_info->is_nullable == 'NO'){
+                $file_content .= "\n       '$column' => 'required',";
+            }
+        }
+        $file_content .=
+"
+    ];";
+        if(!empty($foreign_keys)){
+            $file_content .=
+"
 
+    protected \$model_includes = [
 ";
+
+        $file_content .= "       '".implode("',\n       '", array_map('str_singular',array_reverse($foreign_keys)))."'";
+        $file_content .=
+"
+    ];
+    ";
+        }
+        $file_content .=
+"
+}";
         $filename = "app/Http/Controllers/${model}Controller.php";
         $result = file_put_contents($filename, $file_content);
         if($result){

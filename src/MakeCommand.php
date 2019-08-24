@@ -16,13 +16,13 @@ class MakeCommand extends Command
     {
         parent::__construct();
     }
-    
+
     protected function title($word){
         return ucwords(preg_replace('/_/',' ', $word));
     }
-    
-    
-    public function getColumnData($table, $column){
+
+
+    protected function getColumnData($table, $column){
         $sql = "
             SELECT
                 is_nullable,
@@ -44,7 +44,30 @@ class MakeCommand extends Command
         return $col_info[0];
     }
     
-    public function getForeignKeys($table){
+    protected function getRequiredColumns($table){
+        $sql = "
+            SELECT
+                column_name
+            FROM 
+                information_schema.columns
+            WHERE
+                table_schema = 'public'
+                AND
+                table_name = '$table'
+                AND
+                is_nullable = 'NO'
+            ORDER BY
+                ordinal_position;
+        ";
+        $columns = [];
+        $columns_array = DB::select($sql);
+        foreach($columns_array as $column){
+            array_push($columns, $column->column_name);
+        }
+        return $columns;
+    }
+
+    protected function getForeignKeys($table){
         $sql = "
             SELECT
                 kcu.column_name,
@@ -65,6 +88,4 @@ class MakeCommand extends Command
         }
         return $foreign_keys;
     }
-    
-
 }

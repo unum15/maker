@@ -46,6 +46,8 @@ class MakeVEditCommand extends MakeCommand
         $skip_columns = ['id', 'created_at', 'updated_at'];
         $columns = array_diff($columns, $skip_columns);
         $foreign_keys = $this->getForeignKeys($table);
+        $required_columns = $this->getRequiredColumns($table);
+        $required_columns = array_diff($required_columns, $skip_columns);
         $file_content =
 "<template>
     <div>
@@ -154,7 +156,11 @@ export default {
         }
     },
     methods: {
-        save () {
+        save () {";
+            if(!empty($required_columns)){
+                $file_content .="\n            if("."(!this.$single." . implode(")||(!this.$single.", $required_columns) . ")){\n                return;\n            }";
+            }
+            $file_content .="
             if(this.$single.id === null){
                 this.\$http.post('/$single',this.$single)
                     .then((results) => {

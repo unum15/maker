@@ -44,6 +44,10 @@ class MakeVRoutesCommand extends MakeCommand
         $component = studly_case($table);
         $file_content =
 "
+
+                    <b-dropdown-item href=\"/$single\">New " . $this->title($single) . "</b-dropdown-item>
+                    <b-dropdown-item href=\"/$table\">View " . $this->title($table) . "</b-dropdown-item>
+                    
 import Edit$model from '@/components/Edit$model';
 import View$component from '@/components/View$component';
 

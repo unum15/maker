@@ -5,7 +5,7 @@ namespace Unum\Maker;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class MakeModelCommand extends Command
+class MakeModelCommand extends MakeCommand
 {
     /**
      * The name and signature of the console command.
@@ -44,6 +44,7 @@ class MakeModelCommand extends Command
         $columns = DB::getSchemaBuilder()->getColumnListing($table);
         $columns = array_diff($columns, $skip_columns);
         $columns_str = implode("',\n        '", $columns);
+        $foreign_keys = $this->getForeignKeys($table);
         $file_content =
 "<?php
 
@@ -55,7 +56,20 @@ class $model extends Model
 {
     protected \$fillable = [
         '$columns_str'
-    ];
+    ];";
+        foreach($foreign_keys as $foreign_key => $foreign_table){
+            $foreign_single = str_singular($foreign_table);
+            $foreign_model = studly_case($foreign_single);
+            $file_content .=
+"
+
+    public function $foreign_single()
+    {
+        return \$this->belongsTo('App\\$foreign_model');
+    }";
+        }
+        $file_content .=
+"
 }
 ";
         $result = file_put_contents("app/$model.php", $file_content);

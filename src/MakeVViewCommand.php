@@ -44,7 +44,11 @@ class MakeVViewCommand extends MakeCommand
         $component = studly_case($table);
         $title = $this->title($table);
         $columns = DB::getSchemaBuilder()->getColumnListing($table);
-//        $foreign_keys = $this->getForeignKeys($table);
+        $foreign_keys = $this->getForeignKeys($table);
+        $includes = "";
+        if(!empty($foreign_keys)){
+            $includes = "?includes=".implode(',',array_map('str_singular',array_reverse($foreign_keys)));
+        }
         $file_content =
 "<template>
     <div>
@@ -97,8 +101,16 @@ export default {
     foreach($columns as $column){
         $file_content .= "
                     {
-                        key: '$column',
-                        label: '".$this->title($column)."',
+";
+        if(!isset($foreign_keys[$column])){
+            $file_content .= "                        key: '$column',\n";
+            $file_content .= "                        label: '" . $this->title($column) . "',";
+        }
+        else{
+            $file_content .= "                        key: '" . str_singular($foreign_keys[$column]) . ".name',\n";
+            $file_content .= "                        label: '" . $this->title(str_singular($foreign_keys[$column])) . "',";
+        }
+        $file_content .= "
                         sortable: true
                     },";
     };
@@ -107,7 +119,7 @@ export default {
         }
     },
     created() {
-        this.\$http.get('/$table').then(response => {
+        this.\$http.get('/$table$includes').then(response => {
             this.$table = response.data.data;
         });
     }
