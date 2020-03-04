@@ -107,7 +107,7 @@ class MakeVEditCommand extends MakeCommand
 "
                         </b-form-group>
                     </b-col>
-                </b-row>";
+                </b-row>\n";
     }
     $file_content .=
 "               <b-row>

@@ -63,7 +63,12 @@ class ${model}Controller extends Controller
     public function index(Request \$request)
     {
         \$includes = \$this->validateIncludes(\$request->input('includes'));
-        \$items = $model::with(\$includes)->get();
+        \$values = \$this->validateModel(\$request);
+        \$items_query = $model::with(\$includes);
+        foreach(\$values as \$field => \$value){
+            \$items_query->where(\$field, \$value);
+        }
+        \$items = \$items_query->get();
         return ['data' => \$items];
     }
 
@@ -77,7 +82,7 @@ class ${model}Controller extends Controller
     public function read(\$id, Request \$request)
     {
         \$includes = \$this->validateIncludes(\$request->input('includes'));
-        \$item = $model::find(\$id)->with(\$includes)->firstOrFail();
+        \$item = $model::with(\$includes)->find(\$id);
         return ['data' => \$item];
     }
 
