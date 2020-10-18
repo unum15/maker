@@ -52,11 +52,13 @@ namespace App\\Http\\Controllers;
 
 use App\\$model;
 use Illuminate\\Http\\Request;
+use Illuminate\\Support\\Facades\\Log;
 
 class ${model}Controller extends Controller
 {
     public function __construct()
     {
+        Log::debug('${model}Controller Constructed');
         \$this->middleware('auth');
     }
 
@@ -98,7 +100,7 @@ class ${model}Controller extends Controller
     {
         \$item = $model::findOrFail(\$id);
         \$item->delete();
-        return response([], 401);
+        return response([], 204);
     }
     
     protected \$model_validation = [";

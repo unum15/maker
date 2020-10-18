@@ -60,9 +60,8 @@ class ${model}ControllerTest extends TestCase
         \$items = factory('App\\$model', 2)->create();
         \$response = \$this->get('/$table');
         \$response->seeStatusCode(200);
-        \$response->seeJsonEquals(['data' => \$items->toArray()]);
-        \$this->seeInDatabase('$table', \$items[0]->toArray());
-        \$this->seeInDatabase('$table', \$items[1]->toArray());
+        \$response->seeJson(\$items[0]->toArray());
+        \$response->seeJson(\$items[1]->toArray());
     }    
     
     public function testCreate()
@@ -89,6 +88,7 @@ class ${model}ControllerTest extends TestCase
         \$update = ['name' => 'test'];
         \$response = \$this->patch('/$single/' . \$item->id, \$update);
         \$response->seeStatusCode(200);
+        \$item = \$item->find(\$item->id);
         \$updated_array = array_merge(\$item->toArray(), \$update);
         \$response->seeJsonEquals(['data' => \$updated_array]);
         \$this->seeInDatabase('$table', \$updated_array);
@@ -98,8 +98,7 @@ class ${model}ControllerTest extends TestCase
     {
         \$item = factory('App\\$model')->create();
         \$response = \$this->delete('/$single/' . \$item->id);
-        \$response->seeStatusCode(401);
-        \$response->seeJsonEquals([]);
+        \$response->seeStatusCode(204);
         \$this->notSeeInDatabase('$table', \$item->toArray());
     }
 }
