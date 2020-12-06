@@ -4,44 +4,24 @@ namespace Unum\Maker;;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MakeVRoutesCommand extends MakeCommand
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'make:v-routes {table}';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Make VuesJs route code from table name.';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
     public function handle()
     {
         $table = $this->argument('table');
-        $single = str_singular($table);
-        $model = studly_case($single);
-        $component = studly_case($table);
+        $single = Str::singular($table);
+        $model = Str::studly($single);
+        $component = Str::studly($table);
         $file_content =
 "
 

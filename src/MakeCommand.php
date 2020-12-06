@@ -7,16 +7,18 @@ use Illuminate\Support\Facades\DB;
 
 class MakeCommand extends Command
 {
-     /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
+    protected function validateTable(){
+        $table = $this->argument('table');
+        $columns = DB::getSchemaBuilder()->getColumnListing($table);
+        if(count($columns) == 0){
+            die("No table named $table\n");
+        }
+    }
     protected function title($word){
         return ucwords(preg_replace('/_/',' ', $word));
     }

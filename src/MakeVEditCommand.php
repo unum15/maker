@@ -4,44 +4,24 @@ namespace Unum\Maker;;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MakeVEditCommand extends MakeCommand
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'make:v-edit {table}';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Make VuesJs edit resource file from table name.';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
     public function handle()
     {
+        $this->validateTable();
         $table = $this->argument('table');
-        $single = str_singular($table);
-        $model = studly_case($single);
-//        $title = title($single);
+        $single = Str::singular($table);
+        $model = Str::studly($single);
         $columns = DB::getSchemaBuilder()->getColumnListing($table);
         $skip_columns = ['id', 'created_at', 'updated_at'];
         $columns = array_diff($columns, $skip_columns);
@@ -56,14 +36,14 @@ class MakeVEditCommand extends MakeCommand
             {{ $single.name }}
         </h1>
         <main>
-            <b-container>";
+            <b-container fluid=\"md\">";
     foreach($columns as $column){
         $col_info = $this->getColumnData($table, $column);
         $file_content .=
 "
-                <b-row>
-                    <b-col>
-                        <b-form-group label=\"" . ucwords(preg_replace('/_/',' ', $column)) . "\">";
+                <b-form-row>
+                    <b-col md=\"6\">
+                        <b-form-group label=\"" . $this->getLabel($column,isset($foreign_keys[$column])) . "\" label-cols=\"4\" label-align=\"right\">";
         if(!isset($foreign_keys[$column])){
             $file_content .="
                             <b-form-input
@@ -86,7 +66,8 @@ class MakeVEditCommand extends MakeCommand
                 $file_content .=
 "
                             >
-                            </b-form-input>";
+                            </b-form-input>
+                        ";
             }
             else{
                 $key_table = $foreign_keys[$column];
@@ -107,14 +88,15 @@ class MakeVEditCommand extends MakeCommand
 "
                         </b-form-group>
                     </b-col>
-                </b-row>\n";
+                </b-form-row>
+";
     }
-    $file_content .=
-"               <b-row>
+    $file_content .="
+                <b-form-row>
                     <b-col>
                         <b-button @click=\"\$router.push('/$table')\">Done</b-button>
                     </b-col>
-                </b-row>
+                </b-form-row>
             </b-container>
         </main>
     </div>
@@ -189,4 +171,11 @@ export default {
         return $required;
     }
 
+    public function getLabel($column,$id){
+        $label = ucwords(preg_replace('/_/',' ', $column));
+        if($id){
+            $label = preg_replace('/ Id$/','',$label);
+        }
+        return $label;
+    }
 }

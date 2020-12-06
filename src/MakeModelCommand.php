@@ -4,43 +4,23 @@ namespace Unum\Maker;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MakeModelCommand extends MakeCommand
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'make:model {table}';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Make model file from existing table.';
-
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
     public function handle()
     {
+        $this->validateTable();
         $table = $this->argument('table');
         $skip_columns = ['id', 'created_at', 'updated_at'];
-        $model = studly_case(str_singular($table));
+        $model = Str::studly(Str::singular($table));
         $columns = DB::getSchemaBuilder()->getColumnListing($table);
         $columns = array_diff($columns, $skip_columns);
         $columns_str = implode("',\n        '", $columns);
@@ -58,8 +38,8 @@ class $model extends Model
         '$columns_str'
     ];";
         foreach($foreign_keys as $foreign_key => $foreign_table){
-            $foreign_single = str_singular($foreign_table);
-            $foreign_model = studly_case($foreign_single);
+            $foreign_single = Str::singular($foreign_table);
+            $foreign_model = Str::studly($foreign_single);
             $file_content .=
 "
 

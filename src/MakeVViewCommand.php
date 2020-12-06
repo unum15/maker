@@ -4,50 +4,31 @@ namespace Unum\Maker;;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MakeVViewCommand extends MakeCommand
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'make:v-view {table}';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Make VuesJs view resource list file from table name.';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
     public function handle()
     {
+        $this->validateTable();
         $table = $this->argument('table');
-        $single = str_singular($table);
-        $model = studly_case($single);
-        $component = studly_case($table);
+        $single = Str::singular($table);
+        $model = Str::studly($single);
+        $component = Str::studly($table);
         $title = $this->title($table);
         $columns = DB::getSchemaBuilder()->getColumnListing($table);
         $foreign_keys = $this->getForeignKeys($table);
         $includes = "";
         if(!empty($foreign_keys)){
-            $includes = "?includes=".implode(',',array_map('str_singular',array_reverse($foreign_keys)));
+            $includes = "?includes=".implode(',',array_map('Str::singular',array_reverse($foreign_keys)));
         }
         $file_content =
 "<template>
@@ -79,7 +60,7 @@ class MakeVViewCommand extends MakeCommand
                 :items=\"$table\"
                 :fields=\"fields\"
             >
-                <template slot=\"id\" slot-scope=\"data\">
+                <template v-slot:cell(id)=\"data\">
                     <a :href=\"'/$single/' + data.value\"> {{ data.value }} </a>
                 </template>
             </b-table>
@@ -107,8 +88,8 @@ export default {
             $file_content .= "                        label: '" . $this->title($column) . "',";
         }
         else{
-            $file_content .= "                        key: '" . str_singular($foreign_keys[$column]) . ".name',\n";
-            $file_content .= "                        label: '" . $this->title(str_singular($foreign_keys[$column])) . "',";
+            $file_content .= "                        key: '" . Str::singular($foreign_keys[$column]) . ".name',\n";
+            $file_content .= "                        label: '" . $this->title(Str::singular($foreign_keys[$column])) . "',";
         }
         $file_content .= "
                         sortable: true

@@ -4,43 +4,23 @@ namespace Unum\Maker;;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MakeControllerCommand extends MakeCommand
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'make:controller {table}';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Make controller file from table name.';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
     public function handle()
     {
         $table = $this->argument('table');
-        $model = studly_case(str_singular($table));
-        $single = str_singular($table);
+        $model = Str::studly(Str::singular($table));
+        $single = Str::singular($table);
         $columns = DB::getSchemaBuilder()->getColumnListing($table);
         $skip_columns = ['id', 'created_at', 'updated_at'];
         $columns = array_diff($columns, $skip_columns);
