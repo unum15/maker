@@ -132,7 +132,7 @@ class ${model}Controller extends Controller
     protected \$model_includes = [
 ";
 
-        $file_content .= "       '".implode("',\n       '", array_map('str_singular',array_reverse($foreign_keys)))."'";
+        $file_content .= "       '".implode("',\n       '", array_map('Illuminate\Support\Str::singular',array_reverse($foreign_keys)))."'";
         $file_content .=
 "
     ];
